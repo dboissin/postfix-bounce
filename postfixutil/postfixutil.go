@@ -11,7 +11,7 @@ import "regexp"
 const (
 	softDSN string = "5.2.0 5.2.1 5.2.2 5.3.1 5.4.5 5.5.3"
 	queueIDPattern string = "\\]:\\s([A-Z0-9]+):"
-	logPattern string = "^([A-Za-z]{3} \\d+ [0-9:]{8}) .*? .*?: ([A-Z0-9]+): to=<(.*?)>, relay=(.*?), delay=(.*?), delays=(.*?), dsn=(.*?), status=(.*?)$"
+	logPattern string = "^([A-Za-z]{3}\\s+\\d+ [0-9:]{8}) .*? .*?: ([A-Z0-9]+): to=<(.*?)>, relay=(.*?), delay=(.*?), delays=(.*?), dsn=(.*?), status=(.*?)$"
 )
 
 type Bounce struct {
@@ -56,11 +56,15 @@ func FindBounces(paths *[]string) []Bounce {
 		}
 	}
 
-	for _, log := range logs {
-		queueID := queueIDRegex.FindStringSubmatch(log)[1]
+	for _, l := range logs {
+		queueID := queueIDRegex.FindStringSubmatch(l)[1]
 		if _, exists := bounceQueueID[queueID]; exists {
-			v := logRegex.FindStringSubmatch(log)
-			bounces = append(bounces, Bounce{ParseDate(v[1]), v[2], v[3], v[4], v[5], v[6], v[7], v[8]})
+			v := logRegex.FindStringSubmatch(l)
+			if len(v) == 9 {
+				bounces = append(bounces, Bounce{ParseDate(v[1]), v[2], v[3], v[4], v[5], v[6], v[7], v[8]})
+			} else {
+				log.Fatalf("Invalid line : %s", l)
+			}
 		}
 	}
 	return bounces
