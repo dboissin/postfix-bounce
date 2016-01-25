@@ -45,12 +45,11 @@ func main() {
 
 	bounces := postfixutil.FindBounces(&filePaths)
 	for _, bounce := range bounces {
-		if !bounce.IsHard() {
-			log.Printf("Soft %s : %s\n", bounce.To, bounce.Status)
-		}
-		err = c.Insert(&bounce)
-		if err != nil {
-			log.Fatal(err)
+		if bounce.IsHard() {
+			err = c.Insert(&bounce)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 
